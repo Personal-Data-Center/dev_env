@@ -1,0 +1,62 @@
+version: "3.3"
+
+services:
+
+  traefik:
+    image: "traefik:v2.2"
+    hostname: traefik
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  launcher:
+    image: "pdc/launcher"
+    hostname: launcher
+    volumes:
+     - ./launcher:/launcher
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.launcher.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.launcher.entrypoints=web"
+      - "traefik.http.services.launcher.loadbalancer.server.port=80"
+      
+  system:
+    image: "pdc/system"
+    hostname: system
+    volumes:
+     - ./system:/system
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.system.rule=PathPrefix(`/system`)"
+      - "traefik.http.routers.system.entrypoints=web"
+      - "traefik.http.services.system.loadbalancer.server.port=80"
+   
+  store:
+   image: "pdc/store"
+   hostname: store
+   volumes:
+    - ./store:/store
+   labels:
+     - "traefik.enable=true"
+     - "traefik.http.routers.store.rule=PathPrefix(`/store`)"
+     - "traefik.http.routers.store.entrypoints=web"
+     - "traefik.http.services.store.loadbalancer.server.port=80"
+
+  authorizator:
+   image: "pdc/authorizator"
+   hostname: authorizator
+   volumes:
+    - ./authorizator:/authorizator
+   labels:
+     - "traefik.enable=true"
+     - "traefik.http.routers.authorizator.rule=PathPrefix(`/authorizator`)"
+     - "traefik.http.routers.authorizator.entrypoints=web"
+     - "traefik.http.services.authorizator.loadbalancer.server.port=80"
