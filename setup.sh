@@ -2,62 +2,98 @@
 
 #||||||SOURCE DOWNLOAD AND IMG BUILD||||||
 
-#Launcher
+echo "||||||||||||||||||||||||||||||"
+echo "|| PDC DEV ENVIROMENT SETUP ||"
+echo "||||||||||||||||||||||||||||||"
 
-git clone https://github.com/Personal-Data-Center/launcher.git
+read -p "Install PDC development enviroment?(Y/n) " -n 1 -r
+echo    # (optional) move to a new line
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    	
+    	#Install dependencies
+    	
+    	sudo apt install docker.io git atom
+    	
+    	#Launcher
 
-echo "BUILDING LAUNCHER DOCKER IMAGE\n\n"
+	git clone https://github.com/Personal-Data-Center/launcher.git
+	echo ""
+	echo ""
+	echo "BUILDING LAUNCHER DOCKER IMAGE"
+	echo ""
+	echo ""
+	cd launcher
 
-cd launcher
+	sudo docker build . -t pdc/launcher
 
-sudo docker build . -t pdc/launcher
+	cd ..
 
-cd ..
+	#store
 
-#store
+	git clone https://github.com/Personal-Data-Center/store.git
+	echo ""
+	echo ""
+	echo "BUILDING STORE DOCKER IMAGE"
+	echo ""
+	echo ""
+	cd store
 
-git clone https://github.com/Personal-Data-Center/store.git
+	sudo docker build . -t pdc/store
 
-echo "BUILDING STORE DOCKER IMAGE\n\n"
-
-cd store
-
-sudo docker build . -t pdc/store
-
-cd ..
-
-
-#authorizator
-
-git clone https://github.com/Personal-Data-Center/authorizator.git
-
-echo "BUILDING AUTHORIZATOR DOCKER IMAGE\n\n"
-
-cd authorizator
-
-sudo docker build . -t pdc/authorizator
-
-cd ..
-
-#system
-
-git clone https://github.com/Personal-Data-Center/system.git
-
-echo "BUILDING SYSTEM DOCKER IMAGE\n\n"
-
-cd system
-
-sudo docker build . -t pdc/system
-
-cd ..
+	cd ..
 
 
-#||||||DOCKER SETUP||||||
+	#authorizator
 
-#setup cluster
+	git clone https://github.com/Personal-Data-Center/authorizator.git
+	echo ""
+	echo ""
+	echo "BUILDING AUTHORIZATOR DOCKER IMAGE"
+	echo ""
+	echo ""
+	cd authorizator
 
-sudo docker swarm init
+	sudo docker build . -t pdc/authorizator
 
-sudo docker stack deploy -c docker-compose.yml pdc
+	cd ..
+
+	#system
+
+	git clone https://github.com/Personal-Data-Center/system.git
+	echo ""
+	echo ""
+	echo "BUILDING SYSTEM DOCKER IMAGE"
+	echo ""
+	echo ""
+	cd system
+
+	sudo docker build . -t pdc/system
+
+	cd ..
+
+	#creating database persistence folder
+	mkdir db
+	
+	echo "DATABASE PERSISTENCE FOLDER CREATED"
+	echo ""
+	echo ""
+
+	#||||||DOCKER SETUP||||||
+
+	#setup cluster
+
+	sudo docker swarm init
+
+	sudo docker stack deploy -c docker-compose.yml pdc
+	echo ""
+	echo ""
+	echo "||||||||||||||||||||||||||||||"
+	echo "||||||| SETUP FINISHED |||||||"
+	echo "||||||||||||||||||||||||||||||"
+
+fi
+
+
 
 

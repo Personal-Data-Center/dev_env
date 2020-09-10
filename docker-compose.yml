@@ -1,5 +1,9 @@
 version: "3.3"
 
+networks:
+  pdc:
+    driver: overlay
+
 services:
 
   traefik:
@@ -16,47 +20,82 @@ services:
       - "8080:8080"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - pdc
 
   launcher:
     image: "pdc/launcher"
     hostname: launcher
     volumes:
      - ./launcher:/launcher
+    restart: always
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.launcher.rule=PathPrefix(`/`)"
       - "traefik.http.routers.launcher.entrypoints=web"
       - "traefik.http.services.launcher.loadbalancer.server.port=80"
+    networks:
+      - pdc
       
   system:
     image: "pdc/system"
     hostname: system
     volumes:
      - ./system:/system
+    restart: always
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.system.rule=PathPrefix(`/system`)"
       - "traefik.http.routers.system.entrypoints=web"
       - "traefik.http.services.system.loadbalancer.server.port=80"
+    networks:
+      - pdc
    
   store:
    image: "pdc/store"
    hostname: store
    volumes:
     - ./store:/store
+   restart: always
    labels:
      - "traefik.enable=true"
      - "traefik.http.routers.store.rule=PathPrefix(`/store`)"
      - "traefik.http.routers.store.entrypoints=web"
      - "traefik.http.services.store.loadbalancer.server.port=80"
+   networks:
+     - pdc
 
   authorizator:
    image: "pdc/authorizator"
    hostname: authorizator
    volumes:
     - ./authorizator:/authorizator
+   restart: always
    labels:
      - "traefik.enable=true"
      - "traefik.http.routers.authorizator.rule=PathPrefix(`/authorizator`)"
      - "traefik.http.routers.authorizator.entrypoints=web"
      - "traefik.http.services.authorizator.loadbalancer.server.port=80"
+   networks:
+     - pdc
+     
+  mariadb:
+   image: mariadb
+   hostname: mariadb
+   volumes:
+    - ./db:/var/lib/mysq
+   restart: always
+   environment:
+    MYSQL_ROOT_PASSWORD: pdc_dev
+   networks:
+     - pdc
+     
+# for visually manage db
+
+  adminer:
+   image: adminer
+   restart: always
+   ports:
+    - 8081:8080
+   networks:
+     - pdc
