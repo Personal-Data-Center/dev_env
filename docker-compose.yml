@@ -83,7 +83,7 @@ services:
    image: mariadb
    hostname: mariadb
    volumes:
-    - ./db:/var/lib/mysq
+    - ./db:/var/lib/mysql
    restart: always
    environment:
     MYSQL_ROOT_PASSWORD: pdc_dev
