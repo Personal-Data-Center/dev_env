@@ -26,16 +26,18 @@ services:
   authorizator:
    image: "pdc/authorizator"
    hostname: authorizator
+   environment:
+    SERVICE_PATH: authorizator/
+    HOST: localhost
+    SECRET_KEY: "&=3^m(bgkt708(&5$gjx_#rnz%_e+zzenmh&#jc!7k=9&a^(+z"
    volumes:
     - ./authorizator:/authorizator
     - ./pdc_dev/pdc:/usr/local/lib/python3.9/site-packages/pdc
    labels:
      - "traefik.enable=true"
-     - "traefik.http.routers.authorizator.rule=PathPrefix(`/authorizator`)"
      - "traefik.http.routers.authorizator.entrypoints=web"
      - "traefik.http.services.authorizator.loadbalancer.server.port=80"
-     - "traefik.http.middlewares.authorizator.stripprefix.prefixes=/authorizator"
-     - "traefik.http.routers.authorizator.middlewares=authorizator"
+     - "traefik.http.routers.authorizator.rule=PathPrefix(`/authorizator`)"
    networks:
      - pdc
      
