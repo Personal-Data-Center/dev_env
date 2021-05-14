@@ -1,3 +1,4 @@
+
 version: "3.3"
 
 networks:
@@ -15,39 +16,80 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
+      - "--providers.docker.swarmmode=true"
     ports:
       - "80:80"
       - "8080:8080"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    deploy:
+     labels:
+      - "pdc_backend=true"
     networks:
       - pdc
 
   authorizator:
    image: "pdc/authorizator"
    hostname: authorizator
-   environment:
-    SERVICE_PATH: authorizator/
-    HOST: localhost
-    SECRET_KEY: "&=3^m(bgkt708(&5$gjx_#rnz%_e+zzenmh&#jc!7k=9&a^(+z"
-   volumes:
-    - ./authorizator:/authorizator
-    - ./pdc_dev/pdc:/usr/local/lib/python3.9/site-packages/pdc
-   labels:
+   deploy:
+    labels:
+     - "pdc_backend=true"
      - "traefik.enable=true"
      - "traefik.http.routers.authorizator.entrypoints=web"
      - "traefik.http.services.authorizator.loadbalancer.server.port=80"
      - "traefik.http.routers.authorizator.rule=PathPrefix(`/authorizator`)"
+   environment:
+    SERVICE_PATH: authorizator/
+    HOST: "192.168.1.36"
+    SECRET_KEY: "&=3^m(bgkt708(&5$gjx_#rnz%_e+zzenmh&#jc!7k=9&a^(+z"
+    DB_PASSWORD: "pdc_dev"
+    DB_USER: "root"
+    SYSTEM_API_KEY: "APIKEY"
+    SERVICE_NAME: "Authorizator"
+   volumes:
+    - ./authorizator:/authorizator
+    - ./pdc_dev/pdc:/usr/local/lib/python3.9/site-packages/pdc
    networks:
      - pdc
-     
+
+  system:
+    image: "pdc/system"
+    hostname: system
+    deploy:
+     labels:
+      - "pdc_backend=true"
+      - "traefik.enable=true"
+      - "traefik.http.routers.system.entrypoints=web"
+      - "traefik.http.services.system.loadbalancer.server.port=80"
+      - "traefik.http.routers.system.rule=PathPrefix(`/system`)"
+    environment:
+     SERVICE_PATH: system/
+     HOST: "192.168.1.36"
+     SECRET_KEY: "&=3^m(bgkt708(&5$gjx_#rnz%_e+zzenmh&#jc!7k=9&a^(+z"
+     DB_PASSWORD: "pdc_dev"
+     DB_USER: "root"
+     DB_NAME: "system"
+     SYSTEM_API_KEY: "APIKEY"
+     SERVICE_NAME: "system"
+    volumes:
+     - ./system:/service
+     - ./pdc_dev/pdc:/usr/local/lib/python3.9/site-packages/pdc
+     - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - pdc
+
   mariadb:
    image: mariadb
    hostname: mariadb
+   deploy:
+    labels:
+      - "pdc_backend=true"
    volumes:
     - ./db:/var/lib/mysql
    environment:
     MYSQL_ROOT_PASSWORD: pdc_dev
+   labels:
+      - "pdc_backend=true"
    networks:
      - pdc
      
@@ -57,5 +99,10 @@ services:
    image: adminer
    ports:
     - 8081:8080
+   deploy:
+    labels:
+     - "pdc_backend=true"
+   labels:
+      - "pdc_backend=true"
    networks:
-     - pdc
+    - pdc
